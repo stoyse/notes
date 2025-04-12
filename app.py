@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import markdown
 import sqlite3
+import re
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required for flash messages
 
 # Database initialization
 def init_db():
@@ -71,6 +73,24 @@ def get_all_tables_content():
             all_notes.extend([(table_name, note[0]) for note in notes])
         return all_notes
 
+# Fetch all dynamically created table names
+def get_all_table_names():
+    with sqlite3.connect('notes.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'note_table_%'")
+        return [table[0] for table in cursor.fetchall()]
+
+# Fetch all content from a specific table and convert to Markdown
+def get_table_content(table_name):
+    with sqlite3.connect('notes.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT content FROM {table_name}')
+        return [markdown.markdown(row[0]) for row in cursor.fetchall()]
+
+# Validate table name to ensure it is safe for SQL
+def validate_table_name(table_name):
+    return re.match(r'^[a-zA-Z0-9_]+$', table_name)
+
 @app.route('/')
 def index():
     # Fetch notes from the database
@@ -89,12 +109,16 @@ def index():
 @app.route('/add', methods=['POST'])
 def add_note():
     note = request.form.get('note')
+    table_name = request.form.get('table_name')
+    if not table_name or not validate_table_name(table_name):
+        flash('Invalid table name. Use only letters, numbers, and underscores.')
+        return redirect(url_for('index'))
     if note:
         # Split the input into multiple blocks by any newline
         blocks = [block.strip() for block in note.splitlines() if block.strip()]
         print("Split blocks:", blocks)  # Debugging: Check the split blocks
         if blocks:
-            table_name = f'note_table_{hash(note) % 10000}'  # Generate a unique table name for the submission
+            table_name = f'note_table_{table_name}'  # Prefix to avoid conflicts
             create_table_for_notes(table_name, blocks)  # Create a new table for the blocks
     return redirect(url_for('index'))
 
@@ -118,6 +142,21 @@ def all_notes():
     # Convert note content to HTML using Markdown
     formatted_notes = [(note[0], markdown.markdown(note[1])) for note in notes]
     return render_template('all_notes.html', notes=formatted_notes)
+
+@app.route('/tables')
+def list_tables():
+    # Fetch all dynamically created table names
+    tables = get_all_table_names()
+    return render_template('list_tables.html', tables=tables)
+
+@app.route('/table/<table_name>')
+def view_table(table_name):
+    # Fetch all content from the specified table
+    try:
+        content = get_table_content(table_name)
+        return render_template('view_table.html', table_name=table_name, content=content)
+    except sqlite3.OperationalError:
+        return redirect(url_for('list_tables'))
 
 if __name__ == '__main__':
     init_db()

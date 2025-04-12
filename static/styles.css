@@ -65,11 +65,13 @@ h1 {
 }
 
 .note-item {
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
     background-color: #f4f4f4;
     border: 1px solid #ddd;
     border-radius: 4px;
+    font-size: 16px;
+    line-height: 1.5;
 }
 
 .note-form {
@@ -88,6 +90,48 @@ h1 {
     resize: vertical;
 }
 
+.note-form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
 .note-form .button {
     align-self: flex-start;
+}
+
+.flash-messages {
+    margin: 20px 0;
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.flash-message {
+    margin-bottom: 5px;
+}
+
+.table-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.table-list li {
+    margin: 10px 0;
+}
+
+.table-list .table-link {
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: bold;
+}
+
+.table-list .table-link:hover {
+    text-decoration: underline;
 }

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Tables</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>List of Tables</h1>
+        <ul class="table-list">
+            {% for table in tables %}
+            <li>
+                <a href="{{ url_for('view_table', table_name=table) }}" class="table-link">{{ table }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <a class="button" href="{{ url_for('index') }}">Back to Home</a>
+    </div>
+</body>
+</html>

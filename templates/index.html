@@ -11,8 +11,10 @@
         <h1>Note Taking App</h1>
         <div class="actions">
             <a class="button" href="{{ url_for('all_notes') }}">View All Notes</a>
+            <a class="button" href="{{ url_for('list_tables') }}">View Tables</a>
         </div>
         <form action="/add" method="post" class="note-form">
+            <input type="text" name="table_name" placeholder="Enter table name" required>
             <textarea name="note" placeholder="Enter your note" rows="5" required></textarea>
             <button type="submit" class="button">Add Note</button>
         </form>

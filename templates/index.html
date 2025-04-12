@@ -9,22 +9,13 @@
 <body>
     <div class="container">
         <h1>Note Taking App</h1>
-        <form action="/add" method="post">
+        <div class="actions">
+            <a class="button" href="{{ url_for('all_notes') }}">View All Notes</a>
+        </div>
+        <form action="/add" method="post" class="note-form">
             <textarea name="note" placeholder="Enter your note" rows="5" required></textarea>
-            <button type="submit">Add Note</button>
+            <button type="submit" class="button">Add Note</button>
         </form>
-        <ul>
-            {% for preview, note_id in preview_data %}
-                <li>
-                    <div class="note-content">
-                        <a href="{{ url_for('view_note', note_id=note_id) }}">
-                            {{ preview|safe }}
-                        </a>
-                    </div>
-                    <a href="/delete/{{ note_id }}" class="delete-btn">Delete</a>
-                </li>
-            {% endfor %}
-        </ul>
     </div>
 </body>
 </html>

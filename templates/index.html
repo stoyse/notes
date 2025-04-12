@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Taking App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Note Taking App</h1>
+        <form action="/add" method="post">
+            <textarea name="note" placeholder="Enter your note" rows="5" required></textarea>
+            <button type="submit">Add Note</button>
+        </form>
+        <ul>
+            {% for preview, note_id in preview_data %}
+                <li>
+                    <div class="note-content">
+                        <a href="{{ url_for('view_note', note_id=note_id) }}">
+                            {{ preview|safe }}
+                        </a>
+                    </div>
+                    <a href="/delete/{{ note_id }}" class="delete-btn">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

@@ -10,9 +10,10 @@
     <div class="container">
         <h1>All Notes</h1>
         <div class="notes-list">
-            {% for note in notes %}
+            {% for table_name, content in notes %}
             <div class="note-item">
-                {{ note[1] | safe }}
+                <strong>Table: {{ table_name }}</strong>
+                <div>{{ content | safe }}</div>
             </div>
             {% endfor %}
         </div>

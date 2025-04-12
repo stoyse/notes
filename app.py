@@ -44,6 +44,33 @@ def delete_note_from_db(note_id):
         cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))
         conn.commit()
 
+# Create a new table for a group of notes
+def create_table_for_notes(table_name, notes):
+    with sqlite3.connect('notes.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS {table_name} (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL
+            )
+        ''')
+        cursor.executemany(f'INSERT INTO {table_name} (content) VALUES (?)', [(note,) for note in notes])
+        conn.commit()
+
+# Fetch all content from all dynamically created tables
+def get_all_tables_content():
+    with sqlite3.connect('notes.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'note_%'")
+        tables = cursor.fetchall()
+        all_notes = []
+        for table in tables:
+            table_name = table[0]
+            cursor.execute(f'SELECT content FROM {table_name}')
+            notes = cursor.fetchall()
+            all_notes.extend([(table_name, note[0]) for note in notes])
+        return all_notes
+
 @app.route('/')
 def index():
     # Fetch notes from the database
@@ -66,8 +93,9 @@ def add_note():
         # Split the input into multiple blocks by any newline
         blocks = [block.strip() for block in note.splitlines() if block.strip()]
         print("Split blocks:", blocks)  # Debugging: Check the split blocks
-        for block in blocks:
-            add_note_to_db(block)  # Add each block as a separate note
+        if blocks:
+            table_name = f'note_table_{hash(note) % 10000}'  # Generate a unique table name for the submission
+            create_table_for_notes(table_name, blocks)  # Create a new table for the blocks
     return redirect(url_for('index'))
 
 @app.route('/delete/<int:note_id>')
@@ -85,8 +113,8 @@ def view_note(note_id):
 
 @app.route('/all_notes')
 def all_notes():
-    # Fetch all notes from the database
-    notes = get_all_notes()
+    # Fetch all content from all dynamically created tables
+    notes = get_all_tables_content()
     # Convert note content to HTML using Markdown
     formatted_notes = [(note[0], markdown.markdown(note[1])) for note in notes]
     return render_template('all_notes.html', notes=formatted_notes)

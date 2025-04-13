@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import markdown
 import sqlite3
 import re
@@ -48,6 +48,7 @@ def delete_note_from_db(note_id):
 
 # Create a new table for a group of notes
 def create_table_for_notes(table_name, notes):
+    table_name = sanitize_table_name(table_name)  # Remove prefix logic
     with sqlite3.connect('notes.db') as conn:
         cursor = conn.cursor()
         cursor.execute(f'''
@@ -63,7 +64,7 @@ def create_table_for_notes(table_name, notes):
 def get_all_tables_content():
     with sqlite3.connect('notes.db') as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'note_%'")
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence', 'notes')")
         tables = cursor.fetchall()
         all_notes = []
         for table in tables:
@@ -77,7 +78,7 @@ def get_all_tables_content():
 def get_all_table_names():
     with sqlite3.connect('notes.db') as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'note_table_%'")
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('sqlite_sequence', 'notes')")
         return [table[0] for table in cursor.fetchall()]
 
 # Fetch all content from a specific table and convert to Markdown
@@ -91,20 +92,30 @@ def get_table_content(table_name):
 def validate_table_name(table_name):
     return re.match(r'^[a-zA-Z0-9_]+$', table_name)
 
+# Rename a table
+def rename_table(old_name, new_name):
+    if not validate_table_name(new_name):
+        raise ValueError("Invalid table name. Use only letters, numbers, and underscores.")
+    with sqlite3.connect('notes.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute(f'ALTER TABLE {old_name} RENAME TO {new_name}')
+        conn.commit()
+
+# Utility function to sanitize table names
+def sanitize_table_name(table_name):
+    return table_name.replace('note_table_', '')
+
+# Delete a table
+def delete_table(table_name):
+    with sqlite3.connect('notes.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute(f'DROP TABLE IF EXISTS {table_name}')
+        conn.commit()
+
 @app.route('/')
 def index():
-    # Fetch notes from the database
-    notes = get_all_notes()
-    # Convert each note to HTML using Markdown
-    formatted_notes = [markdown.markdown(note[1]) for note in notes]
-    # Generate previews (truncate to 100 characters and format as Markdown)
-    previews = [
-        markdown.markdown(note[1][:100] + ("..." if len(note[1]) > 100 else ""))
-        for note in notes
-    ]
-    # Zip previews with their IDs
-    preview_data = list(zip(previews, [note[0] for note in notes]))
-    return render_template('index.html', notes=formatted_notes, preview_data=preview_data)
+    tables = get_all_table_names()
+    return render_template('index.html', tables=tables)
 
 @app.route('/add', methods=['POST'])
 def add_note():
@@ -114,13 +125,33 @@ def add_note():
         flash('Invalid table name. Use only letters, numbers, and underscores.')
         return redirect(url_for('index'))
     if note:
-        # Split the input into multiple blocks by any newline
         blocks = [block.strip() for block in note.splitlines() if block.strip()]
-        print("Split blocks:", blocks)  # Debugging: Check the split blocks
         if blocks:
-            table_name = f'note_table_{table_name}'  # Prefix to avoid conflicts
-            create_table_for_notes(table_name, blocks)  # Create a new table for the blocks
+            create_table_for_notes(table_name, blocks)  # Pass sanitized table name
     return redirect(url_for('index'))
+
+@app.route('/rename_table', methods=['POST'])
+def rename_table_route():
+    data = request.get_json()
+    old_name = data.get('old_name')
+    new_name = data.get('new_name')
+    if not old_name or not new_name:
+        return jsonify({'error': 'Both old and new table names are required.'}), 400
+    try:
+        rename_table(old_name, new_name)  # Use raw table names directly
+        return jsonify({'success': True}), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except sqlite3.OperationalError as e:
+        return jsonify({'error': f'Error renaming table: {str(e)}'}), 500
+
+@app.route('/delete_table/<table_name>', methods=['POST'])
+def delete_table_route(table_name):
+    try:
+        delete_table(table_name)
+        return jsonify({'success': True}), 200
+    except sqlite3.OperationalError:
+        return jsonify({'error': 'Error deleting table. Please try again.'}), 500
 
 @app.route('/delete/<int:note_id>')
 def delete_note(note_id):
@@ -130,9 +161,10 @@ def delete_note(note_id):
 @app.route('/note/<int:note_id>')
 def view_note(note_id):
     note = get_note_by_id(note_id)
+    tables = get_all_table_names()
     if note:
         note_content = markdown.markdown(note[0])  # Convert the note to HTML
-        return render_template('note.html', note=note_content, note_id=note_id)
+        return render_template('note.html', note=note_content, note_id=note_id, tables=tables)
     return redirect(url_for('index'))
 
 @app.route('/all_notes')
@@ -152,9 +184,11 @@ def list_tables():
 @app.route('/table/<table_name>')
 def view_table(table_name):
     # Fetch all content from the specified table
+    tables = get_all_table_names()
+
     try:
         content = get_table_content(table_name)
-        return render_template('view_table.html', table_name=table_name, content=content)
+        return render_template('view_table.html', table_name=table_name, content=content, tables=tables)
     except sqlite3.OperationalError:
         return redirect(url_for('list_tables'))
 

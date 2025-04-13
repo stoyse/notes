@@ -1,23 +1,19 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
+    background-color: #f7f8fa;
+    color: #2d3436;
+    line-height: 1.6;
 }
 
-.container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
 h1 {
-    text-align: center;
-    color: #444;
+    text-align: left;
+    color: #2d3436;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    font-weight: 600;
 }
 
 .notes-table {
@@ -45,58 +41,37 @@ h1 {
     background-color: #f1f1f1;
 }
 
-.button {
-    display: inline-block;
-    padding: 10px 20px;
-    margin: 10px 0;
-    background-color: #007BFF;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    text-align: center;
-}
-
-.button:hover {
-    background-color: #0056b3;
-}
-
 .notes-list {
     margin: 20px 0;
-}
-
-.note-item {
-    padding: 15px;
-    margin-bottom: 15px;
-    background-color: #f4f4f4;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .note-form {
     margin: 20px 0;
     display: flex;
     flex-direction: column;
+    gap: 15px;
 }
 
-.note-form textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.note-form textarea,
+.note-form input[type="text"] {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
     font-size: 16px;
     resize: vertical;
+    background-color: #f7f8fa;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.note-form input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
+.note-form textarea:focus,
+.note-form input[type="text"]:focus {
+    outline: none;
+    border-color: #6366f1;
+    background-color: #ffffff;
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
 }
 
 .note-form .button {
@@ -105,11 +80,11 @@ h1 {
 
 .flash-messages {
     margin: 20px 0;
-    padding: 10px;
-    background-color: #f8d7da;
-    color: #721c24;
+    padding: 15px;
+    background-color: #fdecea;
+    color: #d32f2f;
     border: 1px solid #f5c6cb;
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
 .flash-message {
@@ -120,18 +95,132 @@ h1 {
     list-style-type: none;
     padding: 0;
     margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.table-list li {
-    margin: 10px 0;
+body {
+    display: flex;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+.sidebar {
+    width: 250px;
+    background-color: #f4f4f4;
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    margin-right: 1vw;
 }
 
-.table-list .table-link {
+.sidebar .sidebar-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+
+.sidebar ul {
+    padding: 0px;
+}
+
+.sidebar li, .sidebar .sidebar-header a{
+    border-radius: 7px;
+    padding-left: 1vw;
+    display: flex;
+    justify-content: space-between;
+    padding-right: 1vw;
+    padding-top: 5px;
+    padding-bottom: 5px;
     text-decoration: none;
-    color: #007BFF;
-    font-weight: bold;
+    color: #111;
 }
 
-.table-list .table-link:hover {
-    text-decoration: underline;
+.sidebar li:hover, .sidebar .sidebar-header a:hover {
+    background-color: #c4c4c4;
+    border-radius: 7px;
+    padding-left: 1vw;
+    display: flex;
+    justify-content: space-between;
+    padding-right: 1vw;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.sidebar li a {
+    font-family: monospace;
+    font-size: large;
+    color: #111;
+    text-decoration: none;
+    padding-right: 8vw;
+}
+.content {
+    flex: 1;
+    padding: 20px;
+}
+.ai_button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+    width: 60%;
+    text-align: center;
+}
+.ai_button:hover {
+    background-color: #0056b3;
+}
+.menu-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+.dropdown {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    min-width: 150px;
+    z-index: 1;
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+}
+.dropdown li {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.dropdown li:hover {
+    background-color: #f1f1f1;
+}
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-container:hover .dropdown {
+    display: block;
+}
+
+
+@media (max-width: 768px) {
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .button {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+
+    .note-form textarea,
+    .note-form input[type="text"] {
+        font-size: 14px;
+    }
 }

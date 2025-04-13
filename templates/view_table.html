@@ -5,8 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Table: {{ table_name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 </head>
 <body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Sidebar</h2>
+            <a href="/" class="button"><span class="material-icons">edit</span></a>
+        </div>        <ul>
+            <li class="ai_button"><a href="ai">AI</a></li>
+            <ul class="table-list">
+                {% for table in tables %}
+                <li>
+                    <a href="{{ url_for('view_table', table_name=table) }}" class="table-link">{{ table }}</a>
+                    <div class="dropdown-container">
+                        <button class="menu-button">⋮</button>
+                        <ul class="dropdown">
+                            <li onclick="renameRow('{{ table }}')">Rename</li>
+                            <li onclick="deleteRow('{{ table }}')">Delete</li>
+                        </ul>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </ul>
+    </div>
     <div class="container">
         <h1>Table: {{ table_name }}</h1>
         <div class="notes-list">
@@ -18,5 +42,42 @@
         </div>
         <a class="button" href="{{ url_for('list_tables') }}">Back to Tables</a>
     </div>
+
+    <script>
+        function renameRow(tableName) {
+            const newName = prompt("Enter new name for the table:", tableName);
+            if (newName) {
+                fetch('/rename_table', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ old_name: tableName, new_name: newName }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to rename the table.');
+                    }
+                });
+            }
+        }
+
+        function deleteRow(tableName) {
+            if (confirm(`Are you sure you want to delete the table "${tableName}"?`)) {
+                fetch(`/delete_table/${tableName}`, {
+                    method: 'POST',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete the table.');
+                    }
+                });
+            }
+        }
+    </script>
 </body>
 </html>
